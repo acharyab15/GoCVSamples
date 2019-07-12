@@ -3,19 +3,28 @@ package main
 import (
 	"fmt"
 	"image"
+	"os"
 
 	"gocv.io/x/gocv"
 )
 
 func main() {
-	img := gocv.IMRead("cmd/sobel/coins.jpg", gocv.IMReadUnchanged)
-	if img.Empty() {
-		fmt.Println("error")
+	if len(os.Args) < 2 {
+		fmt.Println("How to run:\n\tsobel [imgfile]")
+		return
 	}
-	defer img.Close()
+
+	filename := os.Args[1]
 
 	window := gocv.NewWindow("Sobel Window")
 	defer window.Close()
+
+	img := gocv.IMRead(filename, gocv.IMReadUnchanged)
+	if img.Empty() {
+		fmt.Println("Error")
+		return
+	}
+	defer img.Close()
 
 	gray := gocv.NewMat()
 	defer gray.Close()
@@ -41,6 +50,11 @@ func main() {
 	gocv.ConvertScaleAbs(gradY, &absGradY, 0.5, 0.5)
 
 	gocv.AddWeighted(absGradX, 0.5, absGradY, 0.5, 0, &grad)
+	ok := gocv.IMWrite("img.png", grad)
+	if !ok {
+		fmt.Println("Error")
+		return
+	}
 
 	for {
 		window.IMShow(grad)
