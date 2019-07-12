@@ -39,16 +39,21 @@ func main() {
 	grad := gocv.NewMat()
 	defer grad.Close()
 
+	// Reduce noise
 	gocv.GaussianBlur(img, &img, image.Pt(3, 3), 0, 0, gocv.BorderDefault)
+
+	// Convert the image to grayscale.
 	gocv.CvtColor(img, &gray, gocv.ColorBGRToGray)
 
+	// Calculate the derivatives in x and y directions.
 	gocv.Sobel(gray, &gradX, gocv.MatTypeCV16S, 1, 0, 3, 1, 0, gocv.BorderDefault)
-
 	gocv.Sobel(gray, &gradY, gocv.MatTypeCV16S, 0, 1, 3, 1, 0, gocv.BorderDefault)
 
+	// Converting back to CV_8U.
 	gocv.ConvertScaleAbs(gradX, &absGradX, 0.5, 0.5)
 	gocv.ConvertScaleAbs(gradY, &absGradY, 0.5, 0.5)
 
+	// Approximate the gradient by adding both directional gradients.
 	gocv.AddWeighted(absGradX, 0.5, absGradY, 0.5, 0, &grad)
 	ok := gocv.IMWrite("img.png", grad)
 	if !ok {
